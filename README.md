@@ -101,3 +101,5 @@ kubectl apply -f ingress-cnlb/
 ```
 
 #### build golang hello world image 
+
+Going to start with [this](https://yourbasic.org/golang/http-server-example/) example.
