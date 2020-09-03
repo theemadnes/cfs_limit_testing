@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gke-ingress
+  namespace: istio-system
+  #annotations:
+  #  kubernetes.io/ingress.allow-http: "false"
+  #  kubernetes.io/ingress.global-static-ip-name: "ingress-ip"
+  #  networking.gke.io/managed-certificates: "gke-ingress-cert"
+spec:
+  rules:
+    - http:
+        paths:
+        - backend:
+            serviceName: istio-ingressgateway
+            servicePort: 80
