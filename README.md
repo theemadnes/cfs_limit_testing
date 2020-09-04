@@ -129,14 +129,16 @@ Going to start with [this](https://golang.org/doc/articles/wiki/#tmp_3) example.
 
 Build an image using the [Google BuildPacks](https://github.com/GoogleCloudPlatform/buildpacks) and store to GCR.
 
-```# set up environment vars  
+```
+# set up environment vars  
 export PROJECT=$(gcloud config get-value project) # or your preferred project
 
 cd golang-hello-world
 
 pack build --builder gcr.io/buildpacks/builder:v1 --publish gcr.io/${PROJECT}/golang-hello-world
 
-cd ..```
+cd ..
+```
 
 #### deploy hello world to cluster 
 
