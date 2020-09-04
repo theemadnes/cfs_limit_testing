@@ -6,7 +6,7 @@ Run through some tests on latency impact when enabling K8s limits to pods on bot
 
 #### setup cluster & ASM
 
-start with one cluster. going to enable ASM (Istio) to capture latency metrics. 
+start with one cluster. going to enable ASM (Istio) to capture latency metrics. also register the cluster.
 
 *note* - i'm installing this from MacOS, so some of the commands (for exampl, getting the ASM & istioctl binaries) will change if you're using something else 
 
@@ -91,6 +91,29 @@ gcloud compute firewall-rules create fw-allow-health-checks \
     --source-ranges=35.191.0.0/16,130.211.0.0/22 \
     --rules=tcp:15021
 
+
+# register cluster with Anthos
+
+# create service account
+gcloud iam service-accounts create cfs-limit-testing-sa --project=${PROJECT}
+
+# create IAM binding
+gcloud projects add-iam-policy-binding ${PROJECT} \
+ --member="serviceAccount:cfs-limit-testing-sa@${PROJECT}.iam.gserviceaccount.com" \
+ --role="roles/gkehub.connect"
+
+# download SA JSON key
+gcloud iam service-accounts keys create cfs-limit-testing-sa.json \
+  --iam-account=cfs-limit-testing-sa@${PROJECT}.iam.gserviceaccount.com \
+  --project=${PROJECT}
+
+# complete cluster registration
+gcloud container hub memberships register ${CLUSTER_NAME} \
+    --project=${PROJECT} \
+    --gke-uri=https://container.googleapis.com/v1/projects/${PROJECT}/locations/${REGION}/clusters/${CLUSTER_NAME} \
+    --service-account-key-file=cfs-limit-testing-sa.json
+
+# NOTE: make sure you add the SA key to .gitignore!!!!
 
 
 # apply ingress configuration 
