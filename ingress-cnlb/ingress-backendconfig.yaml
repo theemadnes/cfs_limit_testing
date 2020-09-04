@@ -8,5 +8,3 @@ spec:
     requestPath: /healthz/ready
     port: 15021
     type: HTTP
-  securityPolicy:
-    name: edge-fw-policy

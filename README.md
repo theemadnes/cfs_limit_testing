@@ -102,4 +102,82 @@ kubectl apply -f ingress-cnlb/
 
 #### build golang hello world image 
 
-Going to start with [this](https://yourbasic.org/golang/http-server-example/) example.
+Going to start with [this](https://golang.org/doc/articles/wiki/#tmp_3) example.
+
+Build an image using the [Google BuildPacks](https://github.com/GoogleCloudPlatform/buildpacks) and store to GCR.
+
+```# set up environment vars  
+export PROJECT=$(gcloud config get-value project) # or your preferred project
+
+cd golang-hello-world
+
+pack build --builder gcr.io/buildpacks/builder:v1 --publish gcr.io/${PROJECT}/golang-hello-world
+
+cd ..```
+
+#### deploy hello world to cluster 
+
+this is going to get deployed to the `default` namespace
+
+```
+# set up environment vars  
+export PROJECT=$(gcloud config get-value project) # or your preferred project
+
+# create a deployment.yaml that references your own project
+cat <<EOF > golang-hello-world/k8s/deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-hello-world
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: golang-hello-world
+  template:
+    metadata:
+      labels:
+        app: golang-hello-world
+        version: v1
+    spec:
+      serviceAccountName: golang-hello-world-ksa
+      containers:
+      - name: golang-hello-world
+        image: gcr.io/${PROJECT}/golang-hello-world:latest # being a little lazy here
+        ports:
+          - name: http
+            containerPort: 8080
+        livenessProbe:
+          httpGet:
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+EOF
+
+# enable sidecar injection
+kubectl label namespace default istio-injection=enabled
+
+# apply the k8s manifests 
+kubectl apply -f golang-hello-world/k8s/
+```
+
+#### test the endpoint
+
+
+```
+export ENDPOINT_IP=$(kubectl get ingress gke-ingress -n istio-system --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+curl -s http://$ENDPOINT_IP/test
+```
+
+At this point, you should get a response from the service endpoint. 

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-hello-world
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: golang-hello-world
+  template:
+    metadata:
+      labels:
+        app: golang-hello-world
+        version: v1
+    spec:
+      serviceAccountName: golang-hello-world-ksa
+      containers:
+      - name: golang-hello-world
+        image: gcr.io/alexmattson-scratch/golang-hello-world:latest # being a little lazy here
+        ports:
+          - name: http
+            containerPort: 8080
+        livenessProbe:
+          httpGet:
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 1

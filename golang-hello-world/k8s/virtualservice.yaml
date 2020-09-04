@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: golang-hello-world-vs
+spec:
+  gateways:
+  - golang-hello-world-gateway
+  hosts:
+  - '*'
+  http:
+  - route:
+    - destination:
+        host: golang-hello-world.default.svc.cluster.local
+        port:
+          number: 80
